@@ -63,122 +63,143 @@ total = SandPplusNasdaq + NYSE + NASDAQ
 set_total = (set(total))
 list_set_total = list(set_total)
 
-total = np.array_split(list_set_total, 6)        
+total = np.array_split(list_set_total, 30)        
 
-for i in total[0]:
-    
-    url = "https://alpha-vantage.p.rapidapi.com/query"
+print(len(total[1]))
 
-    querystring = {"outputsize":"full","datatype":"json","function":"TIME_SERIES_DAILY_ADJUSTED","symbol":'{}'.format(i)}
-        
-    headers = {
-        'x-rapidapi-host': "alpha-vantage.p.rapidapi.com",
-        'x-rapidapi-key': "622cc4aea0msh1ef679db027bf3dp12f333jsn5670556c4401"
-        }
+number = 0 
+okayarraylist = []
+notokayarraylist = []
 
-    response = requests.request("GET", url, headers=headers, params=querystring)
-
-    result_dict = json.loads(response.text)
+for i in total[1][75:]:
     
     try: 
-        stock_symbol = result_dict['Meta Data']['2. Symbol']
-        last_date = result_dict['Meta Data']['3. Last Refreshed']
+      url = "https://alpha-vantage.p.rapidapi.com/query"
+
+      querystring = {"outputsize":"full","datatype":"json","function":"TIME_SERIES_DAILY_ADJUSTED","symbol":'{}'.format(i)}
+          
+      headers = {
+          'x-rapidapi-host': "alpha-vantage.p.rapidapi.com",
+          'x-rapidapi-key': "622cc4aea0msh1ef679db027bf3dp12f333jsn5670556c4401"
+          }
+
+      response = requests.request("GET", url, headers=headers, params=querystring)
+
+      result_dict = json.loads(response.text)
+      
+      stock_symbol = result_dict['Meta Data']['2. Symbol']
+      last_date = result_dict['Meta Data']['3. Last Refreshed']
     except: 
-        continue; 
+        notokayarraylist.append(i)
+        print('Not okay list: ',len(notokayarraylist))
+        print(notokayarraylist)
+        time.sleep(15)
+        continue
         
     date_data = []
     high = []
     low = []
     adjustedClose = []
     volume = []
+    
+    try:
 
-    for i, j in result_dict['Time Series (Daily)'].items():
+      for i, j in result_dict['Time Series (Daily)'].items():
 
-      date_data.append(i)
+        date_data.append(i)
 
-      for k, l in j.items():
-        
-        if k == '2. high': 
-          high.append(l)
-        elif k == '3. low':
-          low.append(l)
-        elif k == '5. adjusted close': 
-          adjustedClose.append(l)
-        elif k == '6. volume': 
-          volume.append(l)
-
-
-
-    df_date = pd.DataFrame({ 'date_data': date_data, 'high': high, 'low': low, 
-    'adjustedClose': adjustedClose, 'volume': volume })
-
-    df_date['date_data'] =  pd.to_datetime(df_date['date_data'], format='%Y-%m-%d')
-
-    df_date['year'] = df_date['date_data'].dt.year
-
-    df_date = df_date.iloc[::-1].reset_index(drop=True)
-
-    new_df = df_date.reindex(df_date['date_data'])
-
-    new_df['adjustedClose'] = df_date['adjustedClose'].values
+        for k, l in j.items():
+          
+          if k == '2. high': 
+            high.append(l)
+          elif k == '3. low':
+            low.append(l)
+          elif k == '5. adjusted close': 
+            adjustedClose.append(l)
+          elif k == '6. volume': 
+            volume.append(l)
 
 
-    START_DATE = df_date['date_data'].iloc[0]
-    END_DATE = df_date['date_data'].iloc[-1]
+
+      df_date = pd.DataFrame({ 'date_data': date_data, 'high': high, 'low': low, 
+      'adjustedClose': adjustedClose, 'volume': volume })
+
+      df_date['date_data'] =  pd.to_datetime(df_date['date_data'], format='%Y-%m-%d')
+
+      df_date['year'] = df_date['date_data'].dt.year
+
+      df_date = df_date.iloc[::-1].reset_index(drop=True)
+
+      new_df = df_date.reindex(df_date['date_data'])
+
+      new_df['adjustedClose'] = df_date['adjustedClose'].values
 
 
-    def clean_date(stock_data, col): 
-        weekdays = pd.date_range(start=START_DATE, end=END_DATE)
-        clean_data = stock_data[col].reindex(weekdays)
-        return clean_data.fillna(method='ffill')
+      START_DATE = df_date['date_data'].iloc[0]
+      END_DATE = df_date['date_data'].iloc[-1]
 
 
-    def get_stats(stock_data): 
-        return { 
-            'short_rolling': stock_data.rolling(window=20).mean(),
-            'medium_rolling': stock_data.rolling(window=50).mean(),
-            'long_rolling': stock_data.rolling(window=200).mean()
-        }
-
-    def create_plot(stock_data, ticker): 
-        plt.style.use('fivethirtyeight')
-        stats = get_stats(stock_data)
-        plt.subplots(figsize=(15,10))
-        plt.plot(stock_data, label=ticker, linewidth=0.6)
-        plt.plot(stats['short_rolling'], label='20 day rolling mean', linewidth=0.6)
-        plt.plot(stats['medium_rolling'], label='50 days rolling mean', linewidth=0.6)
-        plt.plot(stats['long_rolling'], label='200 day rolling mean', linewidth=0.6)
-        plt.xlabel('Date')
-        plt.ylabel('Adj Close (p)')
-        plt.legend(loc='upper left')
-        plt.grid(True, linestyle='--', linewidth=1)
-        plt.title('Stock Price over Time.')
-        plt.savefig('./six_thousand_images/{}_{}_{}.png'.format(stock_symbol, 'detail', last_date))
-        plt.clf()
-        plt.close()
+      def clean_date(stock_data, col): 
+          weekdays = pd.date_range(start=START_DATE, end=END_DATE)
+          clean_data = stock_data[col].reindex(weekdays)
+          return clean_data.fillna(method='ffill')
 
 
-    clean_data = clean_date(new_df, 'adjustedClose')
+      def get_stats(stock_data): 
+          return { 
+              'short_rolling': stock_data.rolling(window=20).mean(),
+              'medium_rolling': stock_data.rolling(window=50).mean(),
+              'long_rolling': stock_data.rolling(window=200).mean()
+          }
 
-    create_plot(clean_data.astype(float), stock_symbol) # Graph for own observation 
+      def create_plot(stock_data, ticker): 
+          plt.style.use('fivethirtyeight')
+          stats = get_stats(stock_data)
+          plt.subplots(figsize=(15,10))
+          plt.plot(stock_data, label=ticker, linewidth=0.6)
+          plt.plot(stats['short_rolling'], label='20 day rolling mean', linewidth=0.6)
+          plt.plot(stats['medium_rolling'], label='50 days rolling mean', linewidth=0.6)
+          plt.plot(stats['long_rolling'], label='200 day rolling mean', linewidth=0.6)
+          plt.xlabel('Date')
+          plt.ylabel('Adj Close (p)')
+          plt.legend(loc='upper left')
+          plt.grid(True, linestyle='--', linewidth=1)
+          plt.title('Stock Price over Time.')
+          plt.savefig('./six_thousand_images1/{}_{}_{}.png'.format(stock_symbol, 'detail', last_date))
+          plt.clf()
+          plt.close()
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    plt.style.use('ggplot')
-    plt.xticks([])
-    plt.yticks([])
-    plt.grid(False)
-    # X AXIS -BORDER
-    ax.spines['bottom'].set_visible(False)
-    # BLUE
-    ax.set_xticklabels([])
-    # RED
-    ax.set_xticks([])
-    # RED AND BLUE TOGETHER
-    ax.axes.get_xaxis().set_visible(False)
-    clean_data.astype(float).plot(linewidth=0.6)
-    plt.savefig('./six_thousand_images/{}_{}_{}.png'.format(stock_symbol, 'ai', last_date))
-    plt.clf()
-    plt.close()
 
-    time.sleep(13)
+      clean_data = clean_date(new_df, 'adjustedClose')
+
+      create_plot(clean_data.astype(float), stock_symbol) # Graph for own observation 
+
+      fig = plt.figure()
+      ax = fig.add_subplot(111)
+      plt.style.use('ggplot')
+      plt.xticks([])
+      plt.yticks([])
+      plt.grid(False)
+      # X AXIS -BORDER
+      ax.spines['bottom'].set_visible(False)
+      # BLUE
+      ax.set_xticklabels([])
+      # RED
+      ax.set_xticks([])
+      # RED AND BLUE TOGETHER
+      ax.axes.get_xaxis().set_visible(False)
+      clean_data.astype(float).plot(linewidth=0.6)
+      plt.savefig('./six_thousand_images1/{}_{}_{}.png'.format(stock_symbol, 'ai', last_date))
+      plt.clf()
+      plt.close()
+
+      okayarraylist.append(stock_symbol)
+      print('okay list: ', len(okayarraylist))
+      print(okayarraylist)
+
+      time.sleep(15)
+    except: 
+      time.sleep(15)
+      continue
+
+print("total: ", len(okayarraylist) + len(notokayarraylist))

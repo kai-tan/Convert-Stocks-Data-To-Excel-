@@ -397,9 +397,8 @@ df['Fair Value'] = df['Fair Value'].str.extract('(-?\d+)').astype(float)
 
 df['recommendationMean'] = np.array([float(i) if i != {} else 5 for i in df['recommendationMean'].values])
 
-neww_df = df[(df['recommendationMean'].astype(float) <= 1.8)].sort_values(by ='Fair Value' , ascending=False)
+neww_df = df[(df['recommendationMean'].astype(float) <= 2.0) | (df['Undervalued or Overvalued'] == 'Undervalued')].sort_values(by ='Fair Value' , ascending=False)
 
-# | (df['Undervalued or Overvalued'] == 'Undervalued')
 
 print(len(neww_df))
 
@@ -417,21 +416,26 @@ os.mkdir(dir_name)
 
 for i in neww_df['stock_symbol'].values.tolist():
     
-    url = "https://alpha-vantage.p.rapidapi.com/query"
+    try: 
+        url = "https://alpha-vantage.p.rapidapi.com/query"
 
-    querystring = {"outputsize":"full","datatype":"json","function":"TIME_SERIES_DAILY_ADJUSTED","symbol":'{}'.format(i)}
+        querystring = {"outputsize":"full","datatype":"json","function":"TIME_SERIES_DAILY_ADJUSTED","symbol":'{}'.format(i)}
 
-    headers = {
-        'x-rapidapi-host': "alpha-vantage.p.rapidapi.com",
-        'x-rapidapi-key': "622cc4aea0msh1ef679db027bf3dp12f333jsn5670556c4401"
-        }
+        headers = {
+            'x-rapidapi-host': "alpha-vantage.p.rapidapi.com",
+            'x-rapidapi-key': "622cc4aea0msh1ef679db027bf3dp12f333jsn5670556c4401"
+            }
 
-    response = requests.request("GET", url, headers=headers, params=querystring)
+        response = requests.request("GET", url, headers=headers, params=querystring)
 
-    result_dict = json.loads(response.text)
+        result_dict = json.loads(response.text)
 
-    stock_symbol = result_dict['Meta Data']['2. Symbol']
-    last_date = result_dict['Meta Data']['3. Last Refreshed']
+        stock_symbol = result_dict['Meta Data']['2. Symbol']
+        last_date = result_dict['Meta Data']['3. Last Refreshed']
+
+    except:
+        time.sleep(13)
+        continue
 
     date_data = []
     high = []
@@ -603,11 +607,19 @@ for i in neww_df['stock_symbol'].values.tolist():
 
     # Calculate Annualized return 
 
+    START_DATE = df_date['date_data'].iloc[0]
+    END_DATE = df_date['date_data'].iloc[-1]
+
+    clean_data = clean_date(new_df, 'adjustedClose')
+
     # new_df
     # Since inception 
+    print(clean_data)
     no_years = ((clean_data.index[-1] - clean_data.index[0]).days)/365
+    print(no_years)
     annualized_return_since_inception = ((np.power((float(clean_data[-1])/float(clean_data[0])), 1/no_years)) - 1)*100
-    annualized_return_since_inception 
+    print(annualized_return_since_inception) 
+
 
     # Past 10 years stock annualized return 
     try: 
