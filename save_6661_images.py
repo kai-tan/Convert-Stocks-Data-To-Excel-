@@ -79,8 +79,8 @@ for i in total[1][75:]:
       querystring = {"outputsize":"full","datatype":"json","function":"TIME_SERIES_DAILY_ADJUSTED","symbol":'{}'.format(i)}
           
       headers = {
-          'x-rapidapi-host': "alpha-vantage.p.rapidapi.com",
-          'x-rapidapi-key': "622cc4aea0msh1ef679db027bf3dp12f333jsn5670556c4401"
+          'x-rapidapi-host': "",
+          'x-rapidapi-key': ""
           }
 
       response = requests.request("GET", url, headers=headers, params=querystring)

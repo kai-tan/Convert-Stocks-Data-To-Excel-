@@ -62,14 +62,14 @@ SandPplusNasdaq = ['DVA', 'ETFC', 'TFC', 'BBY', 'AMP', 'AVB', 'PNC', 'RSG', 'AVY
 
 for i in SandPplusNasdaq:
     
-    url = "https://alpha-vantage.p.rapidapi.com/query"
+    # url = "https://alpha-vantage.p.rapidapi.com/query"
 
-    querystring = {"outputsize":"full","datatype":"json","function":"TIME_SERIES_DAILY_ADJUSTED","symbol":'{}'.format(i)}
+    # querystring = {"outputsize":"full","datatype":"json","function":"TIME_SERIES_DAILY_ADJUSTED","symbol":'{}'.format(i)}
 
-    headers = {
-        'x-rapidapi-host': "alpha-vantage.p.rapidapi.com",
-        'x-rapidapi-key': "622cc4aea0msh1ef679db027bf3dp12f333jsn5670556c4401"
-        }
+    # headers = {
+    #     'x-rapidapi-host': "",
+    #     'x-rapidapi-key': ""
+    #     }
 
     response = requests.request("GET", url, headers=headers, params=querystring)
 

@@ -15,21 +15,21 @@ import time
 import json
 import requests
 
-# MONGODB_URI = "mongodb://heroku_8n7z0nqh:g0073297x@ds131313.mlab.com:31313/heroku_8n7z0nqh"
+# MONGODB_URI = "mongodb://"
 
-# client = MongoClient("mongodb://kai:g0073297x@ds131313.mlab.com:31313/heroku_8n7z0nqh")
+# client = MongoClient("mongodb://")
 # db = client['heroku_8n7z0nqh']
 
-# client = MongoClient(host='ds131313.mlab.com',
-#                      port=31313, 
-#                      username='heroku_8n7z0nqh', 
-#                      password='g0073297x',
+# client = MongoClient(host='',
+#                      port=, 
+#                      username='', 
+#                      password='',
 #                     authSource="admin")
-# db = client['heroku_8n7z0nqh']
+# db = client['']
 
 # client = MongoClient(MONGODB_URI, connectTimeoutMS=30000)
 
-# db = client["heroku_8n7z0nqh"]
+# db = client[""]
 
 # stocks_data = db.stocks_data
 
@@ -74,9 +74,9 @@ import requests
 # print(type(datetime_object))
 # print(datetime_object)  # printed in default format
 
-# connection = pymongo.MongoClient('ds131313.mlab.com', 31313)
-# db = connection['heroku_8n7z0nqh']
-# db.authenticate('kai', 'g0073297x')
+# connection = pymongo.MongoClient('', 31313)
+# db = connection['']
+# db.authenticate('kai', '')
 
 # stocks_data = db['stocks_data']
 
